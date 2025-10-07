@@ -2,50 +2,30 @@
  * Serviço de E-mail
  *
  * @description Este arquivo centraliza todas as funções de envio de e-mail do
- * aplicativo. Ele usa Nodemailer para configurar um transportador SMTP e
- * definir modelos de e-mail para diferentes finalidades, como verificação de
- * conta, recuperação de senha e convites para a equipe de planejamento.
+ * aplicativo usando o serviço Resend. O Resend envia e-mails via API HTTP,
+ * o que evita bloqueios de porta SMTP em provedores de nuvem como a Render.
  */
 
-// Importa o módulo Nodemailer
-const nodemailer = require('nodemailer');
+// Importa a classe Resend
+const { Resend } = require('resend');
 
-// Configura o transportador de e-mail usando as credenciais do Gmail
-const transporter = nodemailer.createTransport({
-	service: 'gmail',
-	auth: {
-		user: process.env.EMAIL_USER,
-		pass: process.env.EMAIL_PASSWORD
-	},
-	// Permite conexões não autorizadas (útil em ambientes de desenvolvimento)
-	tls: {
-		rejectUnauthorized: false
-	}
-});
+// Inicializa o Resend com a chave da API a partir das variáveis de ambiente
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// ---
+// Define o e-mail de remetente. No plano gratuito do Resend,
+// o envio é feito pelo domínio deles, mas o nome pode ser personalizado.
+const fromEmail = 'Mariage <onboarding@resend.dev>';
 
-/**
- * Funções de Envio de E-mail
- *
- * @description Funções assíncronas para enviar e-mails com base em modelos predefinidos.
- */
 
 /**
  * Envia um e-mail com um código de verificação de conta.
- *
- * @param {string} toEmail - O endereço de e-mail do destinatário.
- * @param {string} code - O código de verificação a ser enviado.
- * @returns {Promise<void>}
  */
 const sendVerificationEmail = async (toEmail, code) => {
 	try {
-		// Opções do e-mail
-		const mailOptions = {
-			from: `"Mariage" <${process.env.EMAIL_USER}>`,
+		await resend.emails.send({
+			from: fromEmail,
 			to: toEmail,
 			subject: 'O seu código de verificação Mariage',
-			// Conteúdo do e-mail em HTML
 			html: `
 				<div style="font-family: Arial, sans-serif; text-align: center; color: #333;">
 					<h2>Bem-vindo(a) ao Mariage!</h2>
@@ -56,9 +36,8 @@ const sendVerificationEmail = async (toEmail, code) => {
 					<p>Este código expira em 15 minutos.</p>
 				</div>
 			`
-		};
-		await transporter.sendMail(mailOptions);
-		console.log(`E-mail de verificação enviado para ${toEmail}`);
+		});
+		console.log(`E-mail de verificação enviado para ${toEmail} via Resend`);
 	} catch (error) {
 		console.error(`Erro ao enviar e-mail de verificação para ${toEmail}:`, error);
 		throw new Error('Falha ao enviar o e-mail de verificação.');
@@ -67,15 +46,11 @@ const sendVerificationEmail = async (toEmail, code) => {
 
 /**
  * Envia um e-mail para recuperação de senha com um código.
- *
- * @param {string} toEmail - O endereço de e-mail do destinatário.
- * @param {string} code - O código de recuperação de senha.
- * @returns {Promise<void>}
  */
 const sendPasswordResetEmail = async (toEmail, code) => {
 	try {
-		const mailOptions = {
-			from: `"Mariage" <${process.env.EMAIL_USER}>`,
+		await resend.emails.send({
+			from: fromEmail,
 			to: toEmail,
 			subject: 'Recuperação de Senha - Mariage',
 			html: `
@@ -88,9 +63,8 @@ const sendPasswordResetEmail = async (toEmail, code) => {
 					<p>Este código expira em 15 minutos. Se não solicitou esta alteração, por favor, ignore este e-mail.</p>
 				</div>
 			`
-		};
-		await transporter.sendMail(mailOptions);
-		console.log(`E-mail de recuperação de senha enviado para ${toEmail}`);
+		});
+		console.log(`E-mail de recuperação de senha enviado para ${toEmail} via Resend`);
 	} catch (error) {
 		console.error(`Erro ao enviar e-mail de recuperação para ${toEmail}:`, error);
 		throw new Error('Falha ao enviar o e-mail de recuperação.');
@@ -99,17 +73,11 @@ const sendPasswordResetEmail = async (toEmail, code) => {
 
 /**
  * Envia um e-mail de convite para um membro da equipe de planejamento.
- *
- * @param {string} toEmail - O endereço de e-mail do convidado.
- * @param {string} inviterName - O nome da pessoa que enviou o convite.
- * @param {string} weddingName - O nome do casamento.
- * @param {string} acceptUrl - O URL para aceitar o convite.
- * @returns {Promise<void>}
  */
 const sendTeamInvitationEmail = async (toEmail, inviterName, weddingName, acceptUrl) => {
 	try {
-		const mailOptions = {
-			from: `"Mariage" <${process.env.EMAIL_USER}>`,
+		await resend.emails.send({
+			from: fromEmail,
 			to: toEmail,
 			subject: `Você foi convidado(a) para planear um casamento!`,
 			html: `
@@ -126,16 +94,14 @@ const sendTeamInvitationEmail = async (toEmail, inviterName, weddingName, accept
 					<p>Com os melhores cumprimentos,<br>A Equipe Mariage</p>
 				</div>
 			`
-		};
-		await transporter.sendMail(mailOptions);
-		console.log(`E-mail de convite enviado para ${toEmail}`);
+		});
+		console.log(`E-mail de convite enviado para ${toEmail} via Resend`);
 	} catch (error) {
 		console.error(`Erro ao enviar e-mail de convite para ${toEmail}:`, error);
 		throw new Error('Falha ao enviar o e-mail de convite.');
 	}
 };
 
-// Exporta as funções para serem usadas em outras partes do aplicativo.
 module.exports = {
 	sendVerificationEmail,
 	sendPasswordResetEmail,
