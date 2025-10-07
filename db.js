@@ -25,6 +25,9 @@ const pool = new Pool({
 	database: process.env.DB_DATABASE,
 	password: process.env.DB_PASSWORD,
 	port: process.env.DB_PORT,
+    // Exige que a conexão com o banco de dados seja feita usando SSL/TLS.
+    // `rejectUnauthorized: false` é necessário para ambientes de nuvem como a Render.
+    ssl: { rejectUnauthorized: false },
 });
 
 /**
@@ -52,7 +55,7 @@ pool.on('error', (err) => {
 module.exports = {
 	query: (text, params) => {
 		// Loga a consulta apenas em ambiente de desenvolvimento para evitar vazar dados em produção.
-		if (process.env.NODE_ENV !== 'prod') {
+		if (process.env.NODE_ENV !== 'production') {
 			console.log('Consulta SQL executada:', { text, params });
 		}
 		return pool.query(text, params);
