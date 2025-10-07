@@ -1,0 +1,21 @@
+# mariage/.gitignore
+
+# Dependências
+node_modules/
+
+# Arquivos de build e produção
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de variáveis de ambiente (IMPORTANTE)
+.env
+.env*.local
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
